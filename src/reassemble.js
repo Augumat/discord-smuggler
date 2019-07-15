@@ -1,50 +1,94 @@
 const fs = require('fs').promises;
 
-const inputDir =  './input/';
-const outputDir = './input/';
-
+const DIR =  './input/';
 
 
 assemble();
 async function assemble() {
-  //Grab the names of the component files in the input directory
-  let fileNames = await fs.readdir(inputDir)
+  Promise.resolve({})
+    .then(getFiles)
+    .then(getExtension)
+    .then(tidy)
+    .then(getBuffers)
+    .then(combineBuffers)
+    .then(exportBuffer)
+    .then(cleanup)
     .catch(err => console.log(err));
+}
 
-  //Catch failure conditions
-  if (!fileNames || fileNames.length == 0) {
-    return console.log('ERROR : No input file detected');
+async function getFiles(thru) {
+  //Get a list of the filenames in the input directory
+  thru.fileNames = await fs.readdir(DIR)
+     .catch(err => console.log(err));
+
+  //Throw an error if there are no files in the input folder
+  if (!thru.fileNames || thru.fileNames.length == 0) {
+    throw new Error('No input files detected');
   }
 
+  //Return the result wrapped in thru
+  return thru;
+}
+
+async function getExtension(thru) {
   //Store the extension of the file being assembled
-  let extension = await fs.readFile(inputDir + 'ext', 'utf-8')
-    .catch(err => {
-      console.log('ERROR : No file extension found');
-      return '';
-    });
+  thru.name = await fs.readFile(DIR + 'name', 'utf-8')
+    .catch(err => {throw err;});
 
-  //Remove the extension file from the list of files to add to the buffer
-  fileNames = fileNames.filter(x => x != 'ext');
+  //Return the extension wrapped in thru
+  return thru;
+}
 
-  //Put the files themselves into buffers
-  let files = await Promise.all(fileNames.map(name =>
-    fs.readFile(inputDir + name)
-      .catch(err => console.log(err))
-  ));
+async function tidy(thru) {
+  //Remove extraneous non-numbered files from the fileNames pool
+  thru.fileNames = thru.fileNames
+    .filter(x => Number.isInteger(parseInt(x)))
+    .sort((a, b) => parseInt(a) > parseInt(b));
 
-  //Concatenate the files into one
-  let file = Buffer.concat(files);
+  //Returns the new list of just the original data files wrapped in thru
+  return thru;
+}
 
-  //Write the combined file to the output directory
-  let outputFileName = (extension == '') ? outputDir + 'out' : outputDir + 'out.' + extension;
-  await fs.writeFile(outputFileName, file)
-    .catch(err => console.log(err));
-
-  //Clean out the input folder
-  fileNames.forEach(name =>
-    fs.unlink(inputDir + name)
-      .catch(err => console.log(err))
+async function getBuffers(thru) {
+  //Load the listed files into buffers
+  thru.files = await Promise.all(thru.fileNames
+    .map(name =>
+      fs.readFile(DIR + name)
+        .catch(err => {throw err;})
+    )
   );
-  fs.unlink(inputDir + 'ext')
-    .catch(err => {});
+
+  //Return the buffers wrapped in thru
+  return thru;
+}
+
+async function combineBuffers(thru) {
+  //Concatenate all the file buffers into one, preserving order
+  thru.file = await Promise.resolve(Buffer.concat(thru.files));
+
+  //Return the new file buffer wrapped in thru
+  return thru;
+}
+
+async function exportBuffer(thru) {
+  //Write the combined file to the output directory
+  await fs.writeFile(DIR + (thru.name ? thru.name : 'unnamed'), thru.file)
+    .catch(err => {throw err;});
+
+  //Return the rest wrapped in thru
+  return thru;
+}
+
+async function cleanup(thru) {
+  //Clean out the input folder of data files
+  thru.fileNames.forEach(cur =>
+    fs.unlink(DIR + cur)
+      .catch(err => {throw err;})
+  );
+
+  //Remove the name file if it exists
+  if (thru.name) {
+    fs.unlink(DIR + 'name')
+      .catch(err => {throw err;});
+  }
 }

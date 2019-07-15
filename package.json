@@ -3,5 +3,9 @@
   "version": "1.0.0",
   "description": "Chops a file into <50 megabyte chunks to send over discord, also has the functionality to combine them back together after the fact with no data lost.",
   "author": "Augumat",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Augumat/discord-smuggler"
+  }
 }

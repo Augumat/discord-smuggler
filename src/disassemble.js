@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 
-const CHUNK_SIZE = 50000000;
+const CHUNK_SIZE = 8000000;
 
 const inputDir =  './input/';
 const outputDir = './input/';
@@ -27,17 +27,13 @@ async function disassemble() {
   //Grab the name of the only file in the input folder
   let fileName = fileNames[0];
 
-  //Grab the file extension of the input file
-  let extension = fileName.split('.');
-  extension = extension[extension.length - 1];
-
   //Split and export the file
   await fs.readFile(inputDir + fileName)
     .then(data => chunk(data).forEach(write))
     .catch(err => console.log(err));
 
   //Export the extension
-  await fs.writeFile(outputDir + 'ext', extension)
+  await fs.writeFile(outputDir + 'name', fileName)
     .catch(err => console.log(err));
 
   //Clean up the input file

@@ -1,5 +1,7 @@
 # Summary
-A simple application that can be used to send and receive files larger than Discord's 50 Megabyte maximum upload size.  (Lossless!)
+A simple node script that can be used to send and receive files larger than Discord's 8 Megabyte maximum upload size without Nitro.
+
+No compression is used so the whole process is lossless.
 
 # Usage
 First, put the file you want to unwrap or the collection of files you want to reassemble into the input folder.

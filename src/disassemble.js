@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 
-const CHUNK_SIZE = 8000000;
+const CHUNK_SIZE = 8387584; // 8MB - 1024B
 const DIR =  './input/';
 
 
